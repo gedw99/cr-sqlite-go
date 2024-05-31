@@ -1,8 +1,12 @@
 package main
 
 import (
-	"github.com/ebuckley/crsqlite-go/crsql"
+	"os"
+	"path/filepath"
+	"runtime"
 	"sync"
+
+	"github.com/ebuckley/crsqlite-go/crsql"
 )
 
 var schema = `
@@ -10,7 +14,15 @@ create table if not exists note (id primary key not null, title, body);
 select crsql_as_crr('note');
 `
 var setup = sync.OnceFunc(func() {
-	crsql.Register("/home/ersin/Code/crdt-sql/crsql/crsqlite") // TODO make configurable
+	ex, err := os.Executable()
+	if err != nil {
+		panic(err)
+	}
+	exPath := filepath.Dir(ex)
+
+	// Match structure of the .bin path.
+
+	crsql.Register(filepath.Join(exPath, "crsqlite_"+runtime.GOOS+"_"+runtime.GOARCH, "crsqlite"))
 })
 
 func newSyncService() (*crsql.SyncService, error) {
